@@ -1,6 +1,12 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 
 # Create your models here.
+
+# getting user model object
+User = get_user_model()
+
+
 class Post(models.Model):
     '''
     this is aclass to difine posts for blog
@@ -10,11 +16,11 @@ class Post(models.Model):
     image = models.ImageField(null=True, blank=True)
     title = models.CharField(max_length=250)
     content = models.TextField()
-    category = models.CharField('Category', on_delete=models.SET_NULL, null=True)
-    status = models.CharField()
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True)
+    status = models.BooleanField(default=False)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
     published_date = models.DateTimeField()
 
     def __str__(self):
