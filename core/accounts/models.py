@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import (BaseUserManager, AbstractBaseUser, PermissionsMixin)
 from django.utils.translation import gettext_lazy as _
-
+from django.db.models.signals import post_save
+from django.db.models.fields.related import ForeignKey
+from django.dispatch import receiver
 # Create your models here.
 
 class UserManager(BaseUserManager):
@@ -42,7 +44,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(max_length=250, unique=True)
     is_superuser = models.BooleanField(default=False)
-    username = models.CharField(max_length=250, unique=True)
     first_name = models.CharField(max_length=20)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -61,3 +62,24 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
     def __str__(self):
         return self.email
+
+class Profile(models.Model):
+    '''
+    this is a class to define portfolios for users
+    '''
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    frist_name = models.CharField(max_length=250)
+    last_name = models.CharField(max_length=250)
+    description = models.TextField()
+    image = models.ImageField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.user.email
+
+@receiver(post_save, sender=User)
+def save_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
