@@ -1,16 +1,29 @@
 from django.shortcuts import render
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, RedirectView
+from django.views.generic import ListView, DetailView, FormView, CreateView
 from .models import Post
+from django.shortcuts import get_object_or_404
+from .forms import PostForm
 
 # Create your views here.
+
+# Function based view show a template
+'''
 def indexView(request):
+    """
+    a function based view to show index page
+    """
     name = 'Hadi'
     context = {
         'name': name
     }
     return render(request, 'index.html', context)
+'''
 
 class IndexView(TemplateView):
+    '''
+    a class based view to show index page
+    '''
     template_name = 'index.html'
 
     def get_context_data(self, **kwargs):
@@ -18,3 +31,58 @@ class IndexView(TemplateView):
         context['name'] = 'Hadi'
         context['posts'] = Post.objects.all()
         return context
+
+'''FBV for redirect
+from django.shortcuts import redirect
+def redirectToedit(request):
+    return redirect('https://openreel.video/')
+
+'''
+
+class RedirectToedit(RedirectView):
+    url = 'https://openreel.video/'
+
+    def get_redirect_url(self, *args, **kwargs):
+        post = get_object_or_404(Post, pk=kwargs['pk'])
+        print(post)
+        return super().get_redirect_url(*args, **kwargs)
+
+class Postlist(ListView):
+    #queryset = Post.objects.all()
+    model = Post
+    context_object_name = 'posts'
+    paginate_by = 2
+    ordering = '-id'
+
+
+class PostlistView(ListView):
+    model = Post
+    context_object_name = 'posts'
+    paginate_by = 2
+    ordering = '-id'
+    #def get_queryset(self):
+    #    posts = Post.objects.filter(status = True)
+    #    return posts
+
+
+class PostDetailView(DetailView):
+    model = Post
+
+'''
+class PostCreateView(FormView):
+    template_name = 'contact.html'
+    form_class = PostForm
+    success_url = '/blog/post/'
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+'''
+class PostCreateView(CreateView):
+    model = Post
+    form_class = PostForm
+    success_url = '/blog/post/'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
